@@ -42,5 +42,10 @@ https://github.com/sooftware/Speech-Recognition-Tutorial: ASR tutorial 설명
 https://github.com/sooftware/KoSpeech: 한국의 open source code 2개중 하나
 (clovacall, kospeech)
 
+https://hyongdoc.tistory.com/401: librosa(stft) 설명
+
+https://kaen2891.tistory.com/39: librosa(stft) 설명
+
+https://hello-stella.tistory.com/13: stft 설명
 
 
