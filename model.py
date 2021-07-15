@@ -214,6 +214,30 @@ class DecoderRNN(nn.Module):
 
         self.fc = nn.Linear(self.hidden_size + self.encoder_output_size, self.output_size)
 
+
+    # 확인 절차
+    def _validate_args(self, inputs, encoder_hidden, encoder_outputs, function, teacher_forcing_ratio):
+        # attention 사용 할꺼면 encoder output 있는지
+        if self.use_attention:
+            if encoder_outputs is None:
+                raise ValueError("Argument encoder_outputs cannot be None when attention is used.")
+
+        batch_size = encoder_outputs.size(0)
+
+        # input이 없다면 지정
+        if inputs is None:
+            if teacher_forcing_ratio > 0:
+                raise ValueError("Teacher forcing has to be disabled (set 0) when no inputs is provided.")
+            inputs = torch.LongTensor([self.sos_id] * batch_size).view(batch_size, 1)
+            if torch.cuda.is_available():
+                inputs = inputs.cuda()
+            max_length = self.max_length
+        else:
+            max_length = inputs.size(1) - 1  # minus the start of sequence symbol
+
+        return inputs, batch_size, max_length
+
+
     # todo 어떻게 흘러가는지 제대로 파악
     def forward_step(self, input, hidden, encoder_outputs, context, attn_w, function):
         # todo print argument
@@ -325,27 +349,6 @@ class DecoderRNN(nn.Module):
 
         return decoder_outputs
 
-    # 확인 절차
-    def _validate_args(self, inputs, encoder_hidden, encoder_outputs, function, teacher_forcing_ratio):
-        # attention 사용 할꺼면 encoder output 있는지
-        if self.use_attention:
-            if encoder_outputs is None:
-                raise ValueError("Argument encoder_outputs cannot be None when attention is used.")
-
-        batch_size = encoder_outputs.size(0)
-
-        # input이 없다면 지정
-        if inputs is None:
-            if teacher_forcing_ratio > 0:
-                raise ValueError("Teacher forcing has to be disabled (set 0) when no inputs is provided.")
-            inputs = torch.LongTensor([self.sos_id] * batch_size).view(batch_size, 1)
-            if torch.cuda.is_available():
-                inputs = inputs.cuda()
-            max_length = self.max_length
-        else:
-            max_length = inputs.size(1) - 1  # minus the start of sequence symbol
-
-        return inputs, batch_size, max_length
 
 
 
