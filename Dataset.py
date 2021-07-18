@@ -7,6 +7,7 @@ import librosa
 import librosa.display as dispaly
 import json
 import matplotlib.pyplot as plt
+from scipy.io.wavfile import write
 
 import torch
 
@@ -83,13 +84,34 @@ class SpectrogramDataset(Dataset):
     def parse_audio(self, audio_path):
         # print(audio_path)
         y = load_audio(audio_path)
+        # plt.figure(figsize=(15, 10))
+        # plt.xlabel("Index")
+        # plt.ylabel("Amp")
+        # plt.title("Original")
+        # plt.plot(y)
+        # plt.show()
+        # ############### NOISE INJECTION################
+        # noise = np.random.random(y.shape) / 10
+        # y = y + noise
+        ###############################################
+
+        ############### Pitch_Shift####################
+        # y = librosa.effects.pitch_shift(y, sr=44100, n_steps=4)
+        ###############################################
+
+        ############### Changing_speed ################
+        # y = librosa.effects.time_stretch(y, 2.0)
+        ###############################################
+
         # print("y: ", y.shape) # numpy 형식 (13980, ) (12121, )
+        # write("test.wav", 16000, y)
         # plt.figure(figsize=(15, 10))
         # plt.xlabel("Index")
         # plt.ylabel("Amp")
         # plt.title(audio_path)
         # plt.plot(y)
         # plt.show()
+
 
         n_fft = int(self.audio_conf['sample_rate'] * self.audio_conf['window_size'])
         # print("n_fft: ", n_fft) = 320
