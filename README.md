@@ -48,4 +48,7 @@ https://kaen2891.tistory.com/39: librosa(stft) 설명
 
 https://hello-stella.tistory.com/13: stft 설명
 
+https://engineering.linecorp.com/ko/blog/voice-waveform-arbitrary-signal-to-noise-ratio-python/
+: Noise Injection
+
 

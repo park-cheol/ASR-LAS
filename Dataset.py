@@ -21,7 +21,9 @@ def load_audio(path):
     # np.memmap: 디스크에 binary file로 저장된 array 에 대한 memory-map 생성 / 'h': short = int16 int 범위일치
     # 원래 하면 (220, ) 에서 'h' 추가 시 (110, ) 즉 1/2배
 
-    sound = sound.astype('float32') / 32767 # 내 생각) 32767: int 범위 (-32768, 32767)
+    sound = sound.astype('float32') / 32767
+    # 32767: int16 범위 (-32768, 32767)
+    # normalized 목적[-1.0, 1.0]
     # -1~1 사이로 옮김
 
     assert len(sound) # 17430 | 17942
@@ -84,6 +86,7 @@ class SpectrogramDataset(Dataset):
     def parse_audio(self, audio_path):
         # print(audio_path)
         y = load_audio(audio_path)
+        print("y shape", y.shape)
         # plt.figure(figsize=(15, 10))
         # plt.xlabel("Index")
         # plt.ylabel("Amp")
@@ -91,7 +94,7 @@ class SpectrogramDataset(Dataset):
         # plt.plot(y)
         # plt.show()
         # ############### NOISE INJECTION################
-        # noise = np.random.random(y.shape) / 10
+        # noise = np.random.random(y.shape) / 1000
         # y = y + noise
         ###############################################
 
@@ -151,13 +154,14 @@ class SpectrogramDataset(Dataset):
         # print("spect: ", spect) # (161, 1959)
         # print("Phase: ", phase.shape) # (161, 1959) 허수가 대부분
         # plt.figure(figsize=(15, 10))
-        # spect_1 = np.abs(phase)
+        # spect_1 = np.abs(spect)
         # db = librosa.amplitude_to_db(spect_1)
         # img = librosa.display.specshow(db, sr=self.audio_conf['sample_rate'], hop_length=stride_size,
         #                                x_axis='time', y_axis='log')
         # plt.title(audio_path)
         # plt.colorbar(format="%+2.f dB")
         # plt.show()
+
 
         # S = log(S+1) 내 생각으로는 log scale로 바꿔주고 또한 zero point를 0으로 옮겨주기 위해서
         spect = np.log1p(spect)
@@ -168,6 +172,15 @@ class SpectrogramDataset(Dataset):
             spect -= mean
             spect /= std
             # 이는 원래 normalize 식을 적용
+
+        # plt.figure(figsize=(15, 10))
+        # spect_1 = np.abs(spect)
+        # db = librosa.amplitude_to_db(spect_1)
+        # img = librosa.display.specshow(db, sr=self.audio_conf['sample_rate'], hop_length=stride_size,
+        #                                x_axis='time', y_axis='log')
+        # plt.title(audio_path)
+        # plt.colorbar(format="%+2.f dB")
+        # plt.show()
 
         spect = torch.FloatTensor(spect)
 
