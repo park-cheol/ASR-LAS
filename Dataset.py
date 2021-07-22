@@ -1,6 +1,7 @@
 """Audio File Dataset / Dataloader"""
 import os
 import math
+import random
 import numpy as np
 import scipy.signal
 import librosa
@@ -85,21 +86,21 @@ class SpectrogramDataset(Dataset):
 
     def parse_audio(self, audio_path):
         # print(audio_path)
-        y = load_audio(audio_path)
-        print("y shape", y.shape)
+        y = load_audio('data/wavs_train/41_0518_474_0_09115_01.wav')
+        # print("y shape", y.shape)
         # plt.figure(figsize=(15, 10))
         # plt.xlabel("Index")
         # plt.ylabel("Amp")
         # plt.title("Original")
         # plt.plot(y)
         # plt.show()
-        # ############### NOISE INJECTION################
-        # noise = np.random.random(y.shape) / 1000
+        ############### NOISE INJECTION################
+        # noise = np.random.random(y.shape) / 75
         # y = y + noise
-        ###############################################
+        ##############################################
 
         ############### Pitch_Shift####################
-        # y = librosa.effects.pitch_shift(y, sr=44100, n_steps=4)
+        # y = librosa.effects.pitch_shift(y, sr=16000, n_steps=4)
         ###############################################
 
         ############### Changing_speed ################
@@ -111,7 +112,7 @@ class SpectrogramDataset(Dataset):
         # plt.figure(figsize=(15, 10))
         # plt.xlabel("Index")
         # plt.ylabel("Amp")
-        # plt.title(audio_path)
+        # plt.title("Noise")
         # plt.plot(y)
         # plt.show()
 
@@ -145,22 +146,25 @@ class SpectrogramDataset(Dataset):
         # magnitude_dB = librosa.amplitude_to_db(magnitude)
         # img = librosa.display.specshow(magnitude_dB, sr=self.audio_conf['sample_rate'], hop_length=stride_size,
         #                          x_axis='time', y_axis='log')
-        # plt.title(audio_path)
+        # plt.title("41_0518_474_0_09115_01.wav")
         # plt.colorbar(format="%+2.f dB")
         # plt.show()
 
         spect, phase = librosa.magphase(D)
+        # print("spect1: ", spect.shape)
+        spect = spec_augment(spect)
+        # print("spect2", spect.shape)
+
         # y가 (313366, ) ,D.shape(161, 1959) 이면
         # print("spect: ", spect) # (161, 1959)
         # print("Phase: ", phase.shape) # (161, 1959) 허수가 대부분
-        # plt.figure(figsize=(15, 10))
-        # spect_1 = np.abs(spect)
-        # db = librosa.amplitude_to_db(spect_1)
-        # img = librosa.display.specshow(db, sr=self.audio_conf['sample_rate'], hop_length=stride_size,
-        #                                x_axis='time', y_axis='log')
-        # plt.title(audio_path)
-        # plt.colorbar(format="%+2.f dB")
-        # plt.show()
+        plt.figure(figsize=(15, 10))
+        spect_1 = np.abs(spect)
+        db = librosa.amplitude_to_db(spect_1)
+        img = librosa.display.specshow(db, sr=self.audio_conf['sample_rate'], hop_length=stride_size,
+                                       x_axis='time', y_axis='log')
+        plt.colorbar(format="%+2.f dB")
+        plt.show()
 
 
         # S = log(S+1) 내 생각으로는 log scale로 바꿔주고 또한 zero point를 0으로 옮겨주기 위해서
@@ -256,7 +260,6 @@ def _collate_fn(batch):
         # print("target: ", targets[x].size())
 
     seq_lengths = torch.IntTensor(seq_lengths) # [16]
-    # print(seq_lengths)
 
     return seqs, targets, seq_lengths, target_lengths
 
@@ -333,8 +336,25 @@ def load_label_index(label_path):
 
 
 
+def spec_augment(feat, T = 100, F = 27, time_mask_num = 2, freq_mask_num = 2):
+    feat_size = feat.shape[1] # length
+    seq_len = feat.shape[0] # 161
 
+    # freq mask
+    for _ in range(freq_mask_num):
+        f = np.random.uniform(low=0.0, high=F)
+        f = int(f)
+        f0 = random.randint(0, seq_len - f)
+        feat[f0 : f0 + f, :] = 0
 
+    # time mask
+    for _ in range(time_mask_num):
+        t = np.random.uniform(low=0.0, high=T)
+        t = int(t)
+        t0 = random.randint(0, feat_size - t)
+        feat[:, t0 : t0 + t] = 0
+
+    return feat
 
 
 
